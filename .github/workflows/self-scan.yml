@@ -25,3 +25,6 @@ jobs:
         with:
           project-name: repo-impersonation-monitor
           # project-repo defaults to ${{ github.repository }}
+          # Report-only: never open an issue against ourselves. A true positive
+          # filed against our own repo would read as the tool misfiring.
+          dry-run: true
