@@ -11,8 +11,9 @@ requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Mark Hinderliter" }]
 dependencies = [
-    # Runtime deps are added per phase. Phase 1 (models/config/scoring/report)
-    # is pure stdlib. Phase 2+ adds: pefile (PE parsing), requests (GitHub API).
+    # PE version-resource parsing (the differentiator signal). Bytes-only; the
+    # binary is never executed. GitHub I/O uses the standard library (urllib).
+    "pefile>=2024.8.26",
 ]
 
 [project.optional-dependencies]
