@@ -1,0 +1,7 @@
+# Run zizmor locally before each commit so workflow-security issues are caught
+# before CI. Install with: pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.26.1
+    hooks:
+      - id: zizmor
