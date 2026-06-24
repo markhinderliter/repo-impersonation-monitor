@@ -1,0 +1,41 @@
+# Example adopter workflow.
+#
+# Copy this file into your repository at:
+#     .github/workflows/impersonation-check.yml
+#
+# Then replace <owner> with the org/user that hosts repo-impersonation-monitor
+# and set `project-name` to your project. The default GITHUB_TOKEN is enough;
+# the `permissions: issues: write` line is what lets the action open the report
+# issue without you configuring any secret.
+
+name: Impersonation check
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # daily at 06:00 UTC
+  workflow_dispatch: {}     # also allow running it by hand from the Actions tab
+
+permissions:
+  contents: read
+  issues: write             # required so the action can open an issue on a hit
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: <owner>/repo-impersonation-monitor@v1
+        with:
+          project-name: your-project
+
+          # Start with dry-run: true to see what WOULD be reported before
+          # granting issues: write or filing anything. Remove once you trust it.
+          # dry-run: true
+
+          # Known-good copies that must never be reported (legit forks, mirrors,
+          # translations). Comma- or newline-separated owner/name entries.
+          # allowlist: |
+          #   trusted-org/your-project-mirror
+          #   community/your-project-i18n
+
+          # Minimum confidence tier that opens an issue: HIGH (default), MEDIUM, LOW.
+          # min-tier: HIGH

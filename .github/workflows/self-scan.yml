@@ -1,0 +1,27 @@
+# Dogfooding: this repository runs the action on itself, watching for repos
+# impersonating repo-impersonation-monitor. It uses the local action (uses: ./)
+# so it always exercises the code on this branch — a live, end-to-end example.
+
+name: Self impersonation scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Mondays at 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  self-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@v4
+
+      - name: Scan for impersonators of this project
+        uses: ./
+        with:
+          project-name: repo-impersonation-monitor
+          # project-repo defaults to ${{ github.repository }}
