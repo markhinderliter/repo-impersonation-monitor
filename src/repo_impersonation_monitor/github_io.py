@@ -20,7 +20,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 API_VERSION = "2022-11-28"
 USER_AGENT = "repo-impersonation-monitor"
@@ -54,6 +54,21 @@ def parse_next_link(link_header: str | None) -> str | None:
         return None
     match = _NEXT_LINK_RE.search(link_header)
     return match.group(1) if match else None
+
+
+_ALLOWED_URL_SCHEMES = ("http", "https")
+
+
+def _require_web_url(url: str) -> None:
+    """Reject non-http(s) URLs before they reach urlopen.
+
+    A release asset's download URL crosses the hostile-artifact trust boundary
+    (it comes from an untrusted candidate repo). Refusing schemes like ``file://``
+    or ``ftp://`` keeps a crafted URL from reading local files or reaching
+    unexpected services.
+    """
+    if urlsplit(url).scheme.lower() not in _ALLOWED_URL_SCHEMES:
+        raise GitHubError(f"refusing to open non-http(s) URL: {url!r}")
 
 
 class GitHubClient:
@@ -94,7 +109,9 @@ class GitHubClient:
             )
 
     def _urlopen(self, request):  # pragma: no cover - thin wrapper over stdlib
-        return urllib.request.urlopen(request)
+        # Scheme is validated to http(s) by _require_web_url before opening.
+        _require_web_url(request.full_url)
+        return urllib.request.urlopen(request)  # nosec B310
 
     # --- helpers ---------------------------------------------------------
 
@@ -239,6 +256,7 @@ class GitHubClient:
 
         The bytes are returned for parsing only — the caller never executes them.
         """
+        _require_web_url(url)  # hostile asset URL — reject file://, ftp://, etc.
         request = urllib.request.Request(url=url, headers=self._headers())
         chunks: list[bytes] = []
         total = 0

@@ -17,6 +17,7 @@ from repo_impersonation_monitor.github_io import (
     GitHubError,
     HttpResponse,
     NotFoundError,
+    _require_web_url,
     parse_next_link,
 )
 
@@ -216,6 +217,28 @@ def test_download_asset_over_cap_raises():
     client._urlopen = lambda request: io.BytesIO(payload)
     with pytest.raises(GitHubError):
         client.download_asset("https://example.com/big.exe", max_bytes=1000)
+
+
+@pytest.mark.parametrize("url", ["https://x/a.exe", "http://x/a.exe"])
+def test_require_web_url_accepts_http_schemes(url):
+    _require_web_url(url)  # must not raise
+
+
+@pytest.mark.parametrize("url", [
+    "file:///etc/passwd", "ftp://x/a", "gopher://x", "jar:file://x", "",
+])
+def test_require_web_url_rejects_other_schemes(url):
+    with pytest.raises(GitHubError):
+        _require_web_url(url)
+
+
+def test_download_asset_rejects_non_http_url_before_open():
+    opened = []
+    client = GitHubClient(token="t")
+    client._urlopen = lambda request: opened.append(request) or io.BytesIO(b"")
+    with pytest.raises(GitHubError):
+        client.download_asset("file:///etc/passwd", max_bytes=1024)
+    assert opened == []  # never reached urlopen
 
 
 # --- issues: create + dedupe ---------------------------------------------
