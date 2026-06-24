@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repo-impersonation-monitor"
+version = "0.1.0"
+description = "Opt-in GitHub Action that detects repos impersonating your project and drafts a paste-ready abuse report."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Mark Hinderliter" }]
+dependencies = [
+    # Runtime deps are added per phase. Phase 1 (models/config/scoring/report)
+    # is pure stdlib. Phase 2+ adds: pefile (PE parsing), requests (GitHub API).
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["repo_impersonation_monitor"]
+branch = true
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
