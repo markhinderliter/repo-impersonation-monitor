@@ -1,33 +1,39 @@
-# repo-impersonation-monitor
+# Repo Impersonation Monitor
 
-An **opt-in GitHub Action** you add to your own repository to detect other repos
-**impersonating your project** — the "repo confusion" attack. It runs on a
-schedule, and when it finds a likely impersonator it opens an issue in your repo
-containing a **paste-ready abuse report** you can submit to GitHub.
-
-The detection is the means; the deliverable is the **evidence-ready report**. A
-maintainer-filed impersonation/trademark takedown is the fastest path to removal,
-so this tool is built to arm the rights holder — **it proposes, you decide.**
-Nothing is ever filed automatically.
+A GitHub Action that watches for repositories impersonating your project and
+hands you an evidence-ready abuse report when it finds one.
 
 ## Why this exists
 
-A malicious clone copied a legitimate project's README and description, stripped
-out the real source directories, and shipped a single Windows `.exe` whose
-embedded version resources self-identified as an unrelated "licensed" product. It
-rode traffic from a YouTube feature of the real project. That
-artifact-metadata mismatch is the strongest single tell and is under-exploited by
-existing tooling — so it is a first-class signal here.
+While installing an open-source tool I'd seen featured in a video, I searched
+GitHub for it by name and landed on the wrong repository — a clone, not the real
+project. It looked right: the README and description were copied almost verbatim.
+But the real source directories had been stripped out, and the only artifact it
+shipped was a single Windows executable. Reading that binary's embedded version
+metadata — without ever running it — showed it identifying itself as an entirely
+unrelated "licensed" product. It was a malware dropper wearing the project's name,
+riding the traffic the video sent.
+
+I caught it. The next person searching that name might not.
+
+This attack has a name — **repo confusion** — and it's a documented, growing
+pattern. The defenses that exist mostly guard package registries like npm and
+PyPI, where the risk is install-time code execution. They don't help here,
+because this attack targets a human searching GitHub and picking the wrong
+result. And the fastest way these clones come down is a takedown filed by the
+real project's owner. This tool exists to put that lever in the owner's hand.
 
 ## What it does
 
-1. **Candidate generation** — finds repos that might be impersonating you:
-   - the same name under a different owner, and
-   - the vanity-org trick (`Name/Name`, name reused as both org and repo).
-2. **Scoring** — scores each candidate against structural signals and outputs a
-   confidence **tier** (never a hard yes/no).
-3. **Evidence + action** — for high-confidence hits, generates a report and opens
-   an issue. **You** pull the trigger on any actual abuse filing.
+You add it to your own repository as a scheduled Action. On its schedule it
+searches for repos impersonating yours — name collisions, vanity-org clones,
+near-verbatim README copies — and scores each against the signals that separate a
+malicious clone from a legitimate fork or mirror: copied docs sitting over a
+stripped-out source tree, a binary release you don't ship, and binary metadata
+that names a different product. On a high-confidence match it opens an issue in
+your repo containing a paste-ready report you can submit to GitHub.
+
+You decide whether to file it. The tool never accuses on its own.
 
 ### Detection signals
 
@@ -43,8 +49,27 @@ Weighted toward durable, structural tells:
 - platform/path inconsistency (e.g. a "macOS tool" whose only artifact is a
   Windows installer)
 
-> **The binary is never executed.** Its bytes are parsed for version resources
-> (via `pefile`) and nothing more. Reading metadata does not run anything.
+## What it isn't (please read)
+
+- **Opt-in, by design.** It only protects projects whose maintainers add it —
+  which means it structurally under-serves the maintainers most often targeted:
+  new, low-visibility projects whose owners are least likely to run security
+  tooling. This is a known gap, not an oversight. Closing it would mean a hosted
+  "watch any project" service, deliberately out of scope for now.
+- **It proposes; it never accuses.** Conservative multi-signal thresholds,
+  confidence tiers, an allowlist for known-good copies, and a human in the loop
+  before anything is filed. A false "malicious clone" label against a legitimate
+  fork is itself a harm, and the tool is built to avoid it.
+- **It never executes anything.** Suspected binaries are only ever parsed for
+  metadata (via `pefile`), never run.
+- **Detection heuristics have a half-life.** Attackers adapt — regenerating
+  READMEs, cycling commits to dodge automated checks. The tool leans on the more
+  durable structural signals for that reason, but no static ruleset stays ahead
+  forever. This is a mitigation, not a cure.
+
+## Status
+
+Alpha. Not yet published or listed on the GitHub Marketplace.
 
 ## Usage
 
@@ -116,9 +141,7 @@ rate limits).
 Not in scope (documented, not built): global crawl of GitHub; a hosted
 "watch any project" service; VirusTotal lookups; broad name-permutation
 generation; archive-wrapped binary extraction (e.g. a PE inside a `.7z` — the
-other structural signals still catch these). A known limitation: opt-in
-structurally under-serves the new, low-popularity maintainers who are the most
-common targets.
+other structural signals still catch these).
 
 ## Development
 
@@ -135,3 +158,18 @@ PE test fixtures are generated, not checked in by hand — see
 ## License
 
 MIT
+
+<!--
+NOTES — delete before publishing:
+
+- Naming the clone: if you decide to name a specific org/account/repo as the
+  impersonator, stick to verifiable OBSERVATIONS ("the source tree was removed,"
+  "the binary's metadata named product X") rather than CONCLUSIONS ("they are
+  criminals"). Observations are defensible; labels invite trouble if you're ever
+  wrong about a specific named party. If in doubt, describe the pattern without
+  naming the third party — the story above works either way.
+
+- The "documented, growing pattern" line is accurate — repo-confusion campaigns
+  have been reported repeatedly through 2024-2026. You can link a reputable
+  write-up if you want a citation, but the README reads fine without one.
+-->

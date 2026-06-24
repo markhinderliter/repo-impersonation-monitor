@@ -16,6 +16,10 @@ Two kinds of tags, by convention:
 Bump the major (`v2`) only for a breaking change to the **public contract**:
 the `action.yml` inputs and the issue/report behavior adopters depend on.
 
+Renaming or removing an `action.yml` **output** is also a breaking change
+requiring a major bump, the same as an input — downstream workflow steps may
+consume outputs.
+
 Keep `version` in `pyproject.toml` in sync with the release tag.
 
 ## Cutting a release

@@ -11,6 +11,8 @@
 name: Impersonation check
 
 on:
+  # Scheduled runs only fire from the repo's DEFAULT branch. Testing on a
+  # feature branch won't trigger — use workflow_dispatch to run it by hand.
   schedule:
     - cron: "0 6 * * *"   # daily at 06:00 UTC
   workflow_dispatch: {}     # also allow running it by hand from the Actions tab
