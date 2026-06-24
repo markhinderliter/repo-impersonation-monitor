@@ -1,5 +1,7 @@
 # Repo Impersonation Monitor
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/<owner>/repo-impersonation-monitor/badge)](https://scorecard.dev/viewer/?uri=github.com/<owner>/repo-impersonation-monitor)
+
 A GitHub Action that watches for repositories impersonating your project and
 hands you an evidence-ready abuse report when it finds one.
 
