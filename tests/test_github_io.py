@@ -97,6 +97,16 @@ def test_get_tree_top_level_uses_given_branch():
     assert "/git/trees/dev" in client._send.calls[0]["url"]
 
 
+def test_get_tree_top_level_dirs_filters_to_directories():
+    client = make_client([json_resp({"tree": [
+        {"path": "src", "type": "tree"},
+        {"path": "README.md", "type": "blob"},
+        {"path": "lib", "type": "tree"},
+    ]})])
+    dirs = client.get_tree_top_level_dirs("a/b", default_branch="main")
+    assert dirs == ["src", "lib"]
+
+
 def test_get_tree_top_level_fetches_default_branch_when_missing():
     client = make_client([
         json_resp({"default_branch": "trunk"}),       # get_repo

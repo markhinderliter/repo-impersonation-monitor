@@ -16,6 +16,9 @@ dependencies = [
     "pefile>=2024.8.26",
 ]
 
+[project.scripts]
+repo-impersonation-monitor = "repo_impersonation_monitor.main:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8",

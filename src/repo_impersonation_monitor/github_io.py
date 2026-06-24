@@ -221,6 +221,19 @@ class GitHubClient:
         tree = self._get_json(f"/repos/{full_name}/git/trees/{default_branch}")
         return [entry["path"] for entry in tree.get("tree", []) if "path" in entry]
 
+    def get_tree_top_level_dirs(
+        self, full_name: str, default_branch: str | None = None
+    ) -> list[str]:
+        """Return only the top-level *directory* names (tree entries)."""
+        if default_branch is None:
+            default_branch = self.get_repo(full_name).get("default_branch", "main")
+        tree = self._get_json(f"/repos/{full_name}/git/trees/{default_branch}")
+        return [
+            entry["path"]
+            for entry in tree.get("tree", [])
+            if "path" in entry and entry.get("type") == "tree"
+        ]
+
     def download_asset(self, url: str, *, max_bytes: int) -> bytes:
         """Stream a release asset into memory, aborting if it exceeds ``max_bytes``.
 

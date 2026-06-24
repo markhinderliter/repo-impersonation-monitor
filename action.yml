@@ -1,0 +1,75 @@
+name: "Repo Impersonation Monitor"
+description: >-
+  Detect repositories impersonating your project (the "repo confusion" attack)
+  and open an issue with a paste-ready abuse report. Propose-only: a human files.
+author: "Mark Hinderliter"
+branding:
+  icon: "shield"
+  color: "red"
+
+inputs:
+  project-name:
+    description: "The project name an impersonator would copy (e.g. the repo name)."
+    required: true
+  project-repo:
+    description: "owner/name of the real project being defended."
+    required: true
+    default: ${{ github.repository }}
+  real-url:
+    description: "Canonical URL of the real project (defaults to its GitHub URL)."
+    required: false
+    default: ""
+  report-repo:
+    description: "owner/name where issues are opened (defaults to project-repo)."
+    required: false
+    default: ""
+  allowlist:
+    description: >-
+      Newline- or comma-separated owner/name entries that are known-good copies
+      (legit forks, mirrors, translations) and must never be reported.
+    required: false
+    default: ""
+  min-tier:
+    description: "Minimum confidence tier that opens an issue: HIGH, MEDIUM, or LOW."
+    required: false
+    default: "HIGH"
+  max-candidates:
+    description: "Upper bound on candidates evaluated per run (rate-limit guard)."
+    required: false
+    default: "100"
+  dry-run:
+    description: "If true, log findings but open no issues."
+    required: false
+    default: "false"
+  github-token:
+    description: >-
+      Token for reads + opening issues. The default workflow token is enough;
+      the workflow must grant `issues: write`.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install repo-impersonation-monitor
+      shell: bash
+      run: python -m pip install --quiet "${{ github.action_path }}"
+
+    - name: Run impersonation scan
+      shell: bash
+      env:
+        INPUT_PROJECT_NAME: ${{ inputs.project-name }}
+        INPUT_PROJECT_REPO: ${{ inputs.project-repo }}
+        INPUT_REAL_URL: ${{ inputs.real-url }}
+        INPUT_REPORT_REPO: ${{ inputs.report-repo }}
+        INPUT_ALLOWLIST: ${{ inputs.allowlist }}
+        INPUT_MIN_TIER: ${{ inputs.min-tier }}
+        INPUT_MAX_CANDIDATES: ${{ inputs.max-candidates }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: repo-impersonation-monitor
