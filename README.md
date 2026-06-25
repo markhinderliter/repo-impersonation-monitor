@@ -1,5 +1,6 @@
 # Repo Impersonation Monitor
 
+[![CI](https://github.com/markhinderliter/repo-impersonation-monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/markhinderliter/repo-impersonation-monitor/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/markhinderliter/repo-impersonation-monitor/badge)](https://scorecard.dev/viewer/?uri=github.com/markhinderliter/repo-impersonation-monitor)
 
 A GitHub Action that watches for repositories impersonating your project and
