@@ -63,3 +63,23 @@ def test_evil_twin_and_benign_mirror_share_surface_signals(tmp_path):
     assert {"owner_mismatch", "not_a_fork", "created_after_real"} <= shared
     # the difference is exactly the core/binary tells
     assert CORE_AND_BINARY <= (evil - benign)
+
+
+def test_permutation_discovered_impostor_is_high_confidence(tmp_path):
+    # A permutation-NAMED repo (org-fold) with structural tells must still reach HIGH:
+    # discovery found it; the verdict rests on structure, not the name.
+    scored, triggered = run_case(tmp_path, "permutation_evil")
+    assert scored.tier is ConfidenceTier.HIGH
+    assert CORE_AND_BINARY <= triggered
+    assert scored.candidate.discovered_via == "permutation:org-fold"
+
+
+def test_benign_near_name_does_not_false_positive(tmp_path):
+    # This feature's FP guard: a legit affixed near-name must NOT be flagged just for
+    # the near-miss name. A near-miss NAME alone is not a tell (decision D5).
+    scored, triggered = run_case(tmp_path, "benign_near_name")
+    assert scored.tier < ConfidenceTier.MEDIUM
+    assert scored.candidate.discovered_via == "permutation:affix"
+    # shares scary surface, but the core structural tells are absent
+    assert {"owner_mismatch", "not_a_fork", "created_after_real"} <= triggered
+    assert not (CORE_AND_BINARY & triggered)

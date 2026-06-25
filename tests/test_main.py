@@ -71,7 +71,7 @@ class FakeGitHub:
     def get_tree_top_level_dirs(self, full_name, default_branch=None):
         return list(self._real_dirs)
 
-    def search_repos(self, query, *, per_page=100, max_pages=10):
+    def search_repos(self, query, *, per_page=100, max_pages=10, sort=None):
         return list(self._search_items)
 
     def list_releases(self, full_name):

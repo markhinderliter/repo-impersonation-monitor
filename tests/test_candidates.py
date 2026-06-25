@@ -9,6 +9,7 @@ from repo_impersonation_monitor.candidates import (
     exclude_self_and_allowlist,
     generate,
     item_to_candidate,
+    name_variants,
 )
 from repo_impersonation_monitor.config import load_config
 from repo_impersonation_monitor.models import Candidate
@@ -44,9 +45,23 @@ class FakeGitHub:
         self._items = items
         self.queries = []
 
-    def search_repos(self, query, *, per_page=100, max_pages=10):
-        self.queries.append({"query": query, "per_page": per_page, "max_pages": max_pages})
+    def search_repos(self, query, *, per_page=100, max_pages=10, sort=None):
+        self.queries.append(
+            {"query": query, "per_page": per_page, "max_pages": max_pages, "sort": sort}
+        )
         return list(self._items)
+
+
+class QueryMapGitHub:
+    """Returns items keyed by exact query string; records every query + its sort."""
+
+    def __init__(self, by_query):
+        self._by_query = by_query
+        self.queries = []
+
+    def search_repos(self, query, *, per_page=100, max_pages=10, sort=None):
+        self.queries.append({"query": query, "sort": sort, "max_pages": max_pages})
+        return list(self._by_query.get(query, []))
 
 
 # --- item_to_candidate ----------------------------------------------------
@@ -181,3 +196,104 @@ def test_max_pages_bounded_by_max_candidates(max_c, expected_pages):
     gh = FakeGitHub([])
     generate(make_config(INPUT_MAX_CANDIDATES=str(max_c)), gh)
     assert gh.queries[0]["max_pages"] == expected_pages
+
+
+# --- permutation: variant generation (pure) ------------------------------
+
+def test_name_variants_includes_confirmed_org_fold():
+    # The confirmed real case: bytedance/deer-flow -> bytedance-deer-flow.
+    variants = dict(name_variants("bytedance", "deer-flow"))
+    assert variants["bytedance-deer-flow"] == "permutation:org-fold"
+
+
+def test_name_variants_includes_separator_swaps():
+    names = {v for v, _ in name_variants("o", "deer-flow")}
+    assert {"deerflow", "deer_flow", "deer.flow"} <= names
+
+
+def test_name_variants_includes_prefix_and_suffix_affixes():
+    names = {v for v, _ in name_variants("o", "deer-flow")}
+    assert "deer-flow-ai" in names
+    assert "ai-deer-flow" in names
+
+
+def test_name_variants_excludes_the_exact_name():
+    names = {v for v, _ in name_variants("o", "deer-flow")}
+    assert "deer-flow" not in names
+
+
+def test_name_variants_are_deduped():
+    names = [v for v, _ in name_variants("bytedance", "deer-flow")]
+    assert len(names) == len(set(names))
+
+
+def test_name_variants_single_token_has_no_separator_swaps():
+    vias = {via for _, via in name_variants("acme", "skills")}
+    assert "permutation:separator" not in vias  # nothing to swap on a 1-token name
+    assert "permutation:org-fold" in vias
+    assert "permutation:affix" in vias
+
+
+def test_name_variants_org_fold_precedes_affixes_for_cap_truncation():
+    kinds = [via for _, via in name_variants("bytedance", "deer-flow")]
+    assert kinds[0] == "permutation:org-fold"
+    assert kinds.index("permutation:org-fold") < kinds.index("permutation:affix")
+
+
+# --- permutation: generate() integration ---------------------------------
+
+def perm_config(**overrides):
+    env = {"INPUT_PROJECT_NAME": "deer-flow", "INPUT_PROJECT_REPO": "bytedance/deer-flow"}
+    env.update(overrides)
+    return make_config(**env)
+
+
+def test_generate_surfaces_org_fold_via_permutation():
+    fold = search_item("bigdatasciencegroup", "bytedance-deer-flow")
+    gh = QueryMapGitHub({"bytedance-deer-flow in:name": [fold]})
+    out = {c.full_name: c.discovered_via for c in generate(perm_config(), gh)}
+    assert out["bigdatasciencegroup/bytedance-deer-flow"] == "permutation:org-fold"
+
+
+def test_permutation_queries_use_recency_sort_exact_name_does_not():
+    gh = QueryMapGitHub({})
+    generate(perm_config(), gh)
+    exact_q = next(q for q in gh.queries if q["query"] == "deer-flow in:name")
+    fold_q = next(q for q in gh.queries if q["query"] == "bytedance-deer-flow in:name")
+    assert exact_q["sort"] is None  # existing path's ordering is untouched
+    assert fold_q["sort"] == "updated"  # variant target is a fresh impostor
+
+
+def test_permutation_keeps_only_exact_variant_matches():
+    # A substring-but-not-exact result for the variant query must be dropped.
+    noise = search_item("someone", "bytedance-deer-flow-extra")
+    gh = QueryMapGitHub({"bytedance-deer-flow in:name": [noise]})
+    out = [c.full_name for c in generate(perm_config(), gh)]
+    assert "someone/bytedance-deer-flow-extra" not in out
+
+
+def test_generate_merges_exact_and_permutation_results():
+    fold = search_item("bigdatasciencegroup", "bytedance-deer-flow")
+    gh = QueryMapGitHub(
+        {
+            "deer-flow in:name": [search_item("evil", "deer-flow")],
+            "bytedance-deer-flow in:name": [fold],
+        }
+    )
+    out = {c.full_name: c.discovered_via for c in generate(perm_config(), gh)}
+    assert out["evil/deer-flow"] == "exact-name"
+    assert out["bigdatasciencegroup/bytedance-deer-flow"] == "permutation:org-fold"
+
+
+def test_permutation_respects_max_variants_cap():
+    gh = QueryMapGitHub({})
+    generate(perm_config(INPUT_MAX_VARIANTS="2"), gh)
+    variant_queries = [q for q in gh.queries if q["sort"] == "updated"]
+    assert len(variant_queries) == 2  # capped to max-variants, org-fold first
+
+
+def test_permutation_does_not_rerun_exact_name_query():
+    gh = QueryMapGitHub({})
+    generate(perm_config(), gh)
+    exact_queries = [q for q in gh.queries if q["query"] == "deer-flow in:name"]
+    assert len(exact_queries) == 1  # the exact name is never re-queried as a variant

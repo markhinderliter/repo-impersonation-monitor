@@ -37,6 +37,12 @@ inputs:
     description: "Upper bound on candidates evaluated per run (rate-limit guard)."
     required: false
     default: "100"
+  max-variants:
+    description: >-
+      Upper bound on permutation (near-miss name) variants queried per run. Each
+      variant is one search request, so this guards the ~30/min search bucket.
+    required: false
+    default: "20"
   dry-run:
     description: "If true, log findings but open no issues."
     required: false
@@ -70,6 +76,7 @@ runs:
         INPUT_ALLOWLIST: ${{ inputs.allowlist }}
         INPUT_MIN_TIER: ${{ inputs.min-tier }}
         INPUT_MAX_CANDIDATES: ${{ inputs.max-candidates }}
+        INPUT_MAX_VARIANTS: ${{ inputs.max-variants }}
         INPUT_DRY_RUN: ${{ inputs.dry-run }}
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
       run: repo-impersonation-monitor

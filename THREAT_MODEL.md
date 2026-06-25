@@ -161,13 +161,32 @@ settings).
     on that path, though it stays correct and free (`is_fork` is in the search
     payload, no extra request) and still matters on the bare-org path. Kept, not
     removed.
-- **The cap still truncates the non-fork population.** The per-run candidate cap
-  (default 30) bounds an already fork-free result set, so a non-fork impostor past
-  the cap on a popular name is unscored (4 of 5 seeds hit the cap in a live run).
-  Adding `fork:false` would not change this — the forks were never in the set.
-  Exact-name matching also misses typosquats that do not share the name (e.g.
-  `bytedance-deer-flow` vs `deer-flow`); closing that is the planned
-  permutation-search feature, tracked separately — not part of this note.
+- **Permutation (near-miss name) coverage is bounded by enumerated classes.**
+  Permutation discovery closes the named exact-name gap — the confirmed
+  `bytedance/deer-flow` → `bytedance-deer-flow` org-fold is now reached by a
+  targeted, recency-sorted variant query — but its reach is finite:
+  - *Unicode-homoglyph variants are N/A, not a gap.* GitHub repo names and owner
+    logins are ASCII (owner logins "can only contain alphanumeric characters and
+    dashes"), so a Cyrillic-`а`-for-Latin-`a` clone cannot exist as an identifier.
+    We deliberately do not generate that dnstwist class.
+  - *Affix/typo reach is bounded.* We enumerate separator swaps, owner+name folds,
+    and a curated affix list; arbitrary unanticipated affixes and single-edit typos
+    are out of scope for MVP (combinatorial query cost against the ~30/min search
+    bucket, low yield). A near-miss outside the enumerated set is a documented miss.
+- **Discovery is capped, and a candidate past the cap is unscored.** Both halves
+  are bounded: exact-name results by `max-candidates` (default 30) and permutation
+  variants by `max-variants` (default 20, org-folds retained first). On a popular
+  name a matching repo beyond the cap is never scored — 4 of 5 seeds hit the
+  candidate cap in a live run. Mitigated, not eliminated; `fork:false` is
+  irrelevant here, as forks are never in the set to begin with. It is **low-priority
+  by measurement, not assumption**: a count audit found that distinctive names have
+  shallow exact-name universes (a few hundred repos), so the unscored tail is small
+  exactly where same-name impersonation is plausible — and only vast for generic
+  dictionary words (e.g. `skills`, hundreds of thousands) where same-name
+  impersonation is implausible and scores low anyway. The measured fix, if ever
+  needed, is **recency ordering over a larger cap**: variant queries already use
+  `sort=updated` so a fresh impostor surfaces first, while the exact-name path
+  deliberately keeps best-match ordering unchanged.
 
 ---
 

@@ -151,6 +151,18 @@ def test_search_query_encoded_in_url():
     assert "in%3Aname" in url or "in:name" in url
 
 
+def test_search_sort_param_in_url_when_provided():
+    client = make_client([json_resp({"items": []})])
+    client.search_repos("foo in:name", sort="updated")
+    assert "sort=updated" in client._send.calls[0]["url"]
+
+
+def test_search_no_sort_param_by_default():
+    client = make_client([json_resp({"items": []})])
+    client.search_repos("foo in:name")
+    assert "sort=" not in client._send.calls[0]["url"]
+
+
 def test_parse_next_link_helper():
     link = (
         '<https://api.github.com/x?page=2>; rel="next", '
