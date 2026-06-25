@@ -93,7 +93,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: markhinderliter/repo-impersonation-monitor@v1
+      - uses: markhinderliter/repo-impersonation-monitor@v0.1.0
         with:
           project-name: MyProject
           # project-repo defaults to this repository
@@ -102,6 +102,10 @@ jobs:
             trusted-mirror/MyProject
             community/MyProject-i18n
 ```
+
+> **Pinning:** `@v0.1.0` is the current immutable alpha release — pin it explicitly.
+> A moving major alias (e.g. `@v1`, always pointing at the latest compatible
+> release) will be introduced with a stable line later; there is no `@v1` yet.
 
 The default `GITHUB_TOKEN` is sufficient (repo search + issue creation). A PAT is
 only needed if you later need higher rate limits.

@@ -11,7 +11,9 @@ on:
 
 permissions:
   contents: read
-  issues: write
+  # No issues: write — this self-scan is dry-run (report-only), so it never opens
+  # an issue. Least-privilege: the write scope is added back deliberately only if
+  # we flip self-scan to issue-opening.
 
 jobs:
   self-scan:
