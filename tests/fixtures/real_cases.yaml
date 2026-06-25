@@ -1,0 +1,50 @@
+# Real-world cases with verified ground-truth labels.
+#
+# This is a manual-validation bed, NOT a unit-test target: nothing here is
+# fetched over the network during unit tests. Each label is established by a
+# canonical channel cited in ground_truth_evidence.
+#
+# expected_label:
+#   do_not_flag            - verified legitimate; the tool must never flag it.
+#   candidate_to_classify  - a look-alike to run through detection; label NOT yet
+#                            established. UNVERIFIED cases must never be presented
+#                            as confirmed malicious.
+#
+# Deliberately NO star/popularity field: popularity is not ground truth.
+
+cases:
+  - canonical_repo: heygen-com/hyperframes
+    expected_label: do_not_flag
+    ground_truth_evidence: >-
+      Linked from heygen.com's help center to this org, establishing it as the
+      legitimate HeyGen project.
+
+  - canonical_repo: NousResearch/hermes-agent
+    expected_label: do_not_flag
+    ground_truth_evidence: >-
+      The official site hermes-agent.nousresearch.com points to this repo under
+      the Nous Research org.
+
+  - canonical_repo: garrytan/gstack
+    expected_label: do_not_flag
+    ground_truth_evidence: >-
+      Owned by Garry Tan (Y Combinator); legitimacy corroborated by OSSInsight
+      analysis.
+
+  - canonical_repo: mattpocock/skills
+    expected_label: do_not_flag
+    ground_truth_evidence: >-
+      Owned by Matt Pocock; legitimacy corroborated by OSSInsight analysis.
+
+  - canonical_repo: bytedance/deer-flow
+    expected_label: do_not_flag
+    ground_truth_evidence: >-
+      Published under the official bytedance org.
+
+  - canonical_repo: bigdatasciencegroup/bytedance-deer-flow
+    expected_label: candidate_to_classify
+    ground_truth_evidence: >-
+      Look-alike of bytedance/deer-flow: copied description, with the org name
+      'bytedance' folded into the repo name under a different owner. Status
+      UNVERIFIED - listed as a candidate to classify, NOT a confirmed malicious
+      case.
