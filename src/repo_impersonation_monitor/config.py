@@ -15,6 +15,7 @@ from .models import ConfidenceTier
 _REPO_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
 _TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
 _DEFAULT_MAX_CANDIDATES = 100
+_DEFAULT_MAX_VARIANTS = 20
 
 
 class ConfigError(ValueError):
@@ -32,6 +33,7 @@ class Config:
     github_token: str
     min_tier_to_report: ConfidenceTier
     max_candidates: int
+    max_variants: int
     dry_run: bool
 
 
@@ -41,6 +43,18 @@ def _get(env: Mapping[str, str], key: str, default: str = "") -> str:
 
 def _parse_bool(value: str) -> bool:
     return value.strip().lower() in _TRUE_VALUES
+
+
+def _parse_positive_int(raw: str, label: str, default: int) -> int:
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ConfigError(f"{label} must be an integer, got {raw!r}") from exc
+    if value <= 0:
+        raise ConfigError(f"{label} must be positive, got {value}")
+    return value
 
 
 def _parse_allowlist(raw: str) -> frozenset[str]:
@@ -84,16 +98,12 @@ def load_config(env: Mapping[str, str]) -> Config:
     except ValueError as exc:
         raise ConfigError(str(exc)) from exc
 
-    max_raw = _get(env, "INPUT_MAX_CANDIDATES")
-    if not max_raw:
-        max_candidates = _DEFAULT_MAX_CANDIDATES
-    else:
-        try:
-            max_candidates = int(max_raw)
-        except ValueError as exc:
-            raise ConfigError(f"max-candidates must be an integer, got {max_raw!r}") from exc
-        if max_candidates <= 0:
-            raise ConfigError(f"max-candidates must be positive, got {max_candidates}")
+    max_candidates = _parse_positive_int(
+        _get(env, "INPUT_MAX_CANDIDATES"), "max-candidates", _DEFAULT_MAX_CANDIDATES
+    )
+    max_variants = _parse_positive_int(
+        _get(env, "INPUT_MAX_VARIANTS"), "max-variants", _DEFAULT_MAX_VARIANTS
+    )
 
     return Config(
         project_name=project_name,
@@ -105,5 +115,6 @@ def load_config(env: Mapping[str, str]) -> Config:
         github_token=github_token,
         min_tier_to_report=min_tier,
         max_candidates=max_candidates,
+        max_variants=max_variants,
         dry_run=dry_run,
     )

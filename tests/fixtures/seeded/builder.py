@@ -66,6 +66,10 @@ class SnapshotSpec:
     description: str | None
     top_level: tuple[str, ...]
     assets: tuple[AssetSpec, ...] = ()
+    # Permutation cases override the repo name (a near-miss, not the exact name)
+    # and the provenance tag; defaults keep the original exact-name cases intact.
+    name: str | None = None
+    discovered_via: str = "seeded"
 
 
 class LocalSnapshotClient:
@@ -121,15 +125,16 @@ def _write_snapshot(base: Path, spec: SnapshotSpec) -> tuple[Candidate, LocalSna
         )
     releases = [{"assets": release_assets}] if release_assets else []
 
+    cand_name = spec.name or PROJECT_NAME
     candidate = Candidate(
         owner=spec.owner,
-        name=PROJECT_NAME,
-        html_url=f"https://github.com/{spec.owner}/{PROJECT_NAME}",
-        clone_url=f"https://github.com/{spec.owner}/{PROJECT_NAME}.git",
+        name=cand_name,
+        html_url=f"https://github.com/{spec.owner}/{cand_name}",
+        clone_url=f"https://github.com/{spec.owner}/{cand_name}.git",
         is_fork=spec.is_fork,
         created_at=spec.created_at,
         pushed_at=spec.created_at,
-        discovered_via="seeded",
+        discovered_via=spec.discovered_via,
         description=spec.description,
     )
     return candidate, LocalSnapshotClient(snap, releases)
@@ -165,6 +170,35 @@ CASES: dict[str, SnapshotSpec] = {
         owner="mirror-host",
         is_fork=False,
         created_at=datetime(2026, 5, 1, tzinfo=UTC),
+        description=CANON_DESCRIPTION,
+        top_level=("README.md", "src", "tests", "docs"),
+        assets=(),
+    ),
+    # Permutation-DISCOVERED impostor: a near-miss name (org-fold "acme-acme-cli")
+    # under a different owner, carrying the SAME structural tells as the evil twin —
+    # stripped source, mismatched-PE binary. The near-miss name is discovery's job;
+    # the HIGH verdict must still rest on structure. Expected: HIGH.
+    "permutation_evil": SnapshotSpec(
+        owner="evilcorp",
+        name="acme-acme-cli",
+        discovered_via="permutation:org-fold",
+        is_fork=False,
+        created_at=datetime(2026, 6, 1, tzinfo=UTC),
+        description=CANON_DESCRIPTION,
+        top_level=("README.md", "docs"),
+        assets=(AssetSpec("acme-cli-setup.exe", DIFFERENT_PRODUCT_PE),),
+    ),
+    # The false-positive guard for THIS feature: a legitimate near-name (affix
+    # "acme-cli-ai") that shares hostile surface (different owner, not a fork, recent,
+    # copied description) but keeps its source tree and ships no hostile binary.
+    # Being permutation-discovered must NOT push it up — a near-miss NAME alone is
+    # not a tell. Expected: <= LOW.
+    "benign_near_name": SnapshotSpec(
+        owner="community-ai",
+        name="acme-cli-ai",
+        discovered_via="permutation:affix",
+        is_fork=False,
+        created_at=datetime(2026, 5, 15, tzinfo=UTC),
         description=CANON_DESCRIPTION,
         top_level=("README.md", "src", "tests", "docs"),
         assets=(),

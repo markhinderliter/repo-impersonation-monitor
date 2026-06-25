@@ -99,6 +99,18 @@ def test_max_candidates_invalid_raises():
         load_config(base_env(INPUT_MAX_CANDIDATES="notanint"))
 
 
+def test_max_variants_default_and_override():
+    assert load_config(base_env()).max_variants == 20
+    assert load_config(base_env(INPUT_MAX_VARIANTS="8")).max_variants == 8
+
+
+def test_max_variants_invalid_raises():
+    with pytest.raises(ConfigError):
+        load_config(base_env(INPUT_MAX_VARIANTS="0"))
+    with pytest.raises(ConfigError):
+        load_config(base_env(INPUT_MAX_VARIANTS="notanint"))
+
+
 def test_missing_project_name_raises():
     env = base_env()
     del env["INPUT_PROJECT_NAME"]

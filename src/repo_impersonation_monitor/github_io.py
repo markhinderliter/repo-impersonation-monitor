@@ -201,18 +201,25 @@ class GitHubClient:
     # --- public API ------------------------------------------------------
 
     def search_repos(
-        self, query: str, *, per_page: int = 100, max_pages: int = 10
+        self, query: str, *, per_page: int = 100, max_pages: int = 10, sort: str | None = None
     ) -> list[dict]:
         """Search repositories, following rel=next up to ``max_pages``.
 
         Each page is one request against the ~30/min search bucket — keep
         ``max_pages`` small. GitHub also caps search at 1000 results total.
+
+        ``sort`` is the optional GitHub sort key (e.g. ``"updated"`` for recency);
+        when omitted the API default ("best match" relevance) is used. The
+        rel=next URL carries the sort forward across pages.
         """
         items: list[dict] = []
+        params: dict = {"q": query, "per_page": per_page}
+        if sort:
+            params["sort"] = sort
         response = self._request(
             "GET",
             "/search/repositories",
-            params={"q": query, "per_page": per_page},
+            params=params,
         )
         pages = 1
         while True:
