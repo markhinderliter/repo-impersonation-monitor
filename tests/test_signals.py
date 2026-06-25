@@ -272,3 +272,19 @@ def test_evaluate_handles_release_error():
     gh = FakeGitHub(tree=["README.md"], release_error=GitHubError("boom"))
     cand, sigs, pe = signals.evaluate(make_candidate(), make_project(), make_config(), gh)
     assert cand.has_releases is False
+
+
+def test_evaluate_metadata_only_skips_pe_download():
+    # read_pe=False: no binary is downloaded or parsed, PE signal cannot fire.
+    gh = FakeGitHub(
+        tree=["README.md", "lib"],
+        releases=[release(("App-Setup.exe", "x", 1536))],
+        asset_bytes=(FIXTURES / "pe_mismatch.exe").read_bytes(),
+    )
+    cand, sigs, pe = signals.evaluate(
+        make_candidate(), make_project(), make_config(), gh, read_pe=False
+    )
+    assert pe is None
+    assert gh.downloaded == []  # binary never fetched
+    pe_sig = next(s for s in sigs if s.key == "pe_metadata_mismatch")
+    assert pe_sig.triggered is False

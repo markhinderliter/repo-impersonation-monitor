@@ -227,12 +227,22 @@ def _read_pe(candidate: Candidate, gh: GitHubClient) -> PeMetadata | None:
 
 
 def evaluate(
-    candidate: Candidate, project: Project, config: Config, gh: GitHubClient
+    candidate: Candidate,
+    project: Project,
+    config: Config,
+    gh: GitHubClient,
+    *,
+    read_pe: bool = True,
 ) -> tuple[Candidate, list[SignalResult], PeMetadata | None]:
-    """Enrich the candidate and evaluate all structural signals."""
+    """Enrich the candidate and evaluate all structural signals.
+
+    ``read_pe=False`` runs a metadata-only pass: no release binary is downloaded
+    or parsed (the PE-mismatch signal cannot fire). Useful for a first triage
+    pass that touches only API metadata.
+    """
     candidate = _enrich_tree(candidate, gh)
     candidate = _enrich_releases(candidate, gh)
-    pe_metadata = _read_pe(candidate, gh)
+    pe_metadata = _read_pe(candidate, gh) if read_pe else None
 
     results = [
         signal_owner_mismatch(candidate, project),
