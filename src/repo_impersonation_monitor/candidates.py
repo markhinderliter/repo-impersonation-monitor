@@ -8,9 +8,9 @@ Generators (each is one or more search queries against the ~30/min bucket):
   both owner and repo. GitHub search has no ``owner==repo`` qualifier, so this is
   a post-filter over the same exact-name results.
 - **permutation** (near-miss names): targeted queries for generated variants of
-  the project name — separator swaps, owner+name "org-folding" (the confirmed
-  ``bytedance/deer-flow`` -> ``bytedance-deer-flow`` case), and a curated set of
-  common affixes. Each variant is its own ``"{variant} in:name"`` query, sorted
+  the project name — separator swaps (``deer-flow`` -> ``deerflow``), owner+name
+  "org-folding" (``owner/name`` -> ``owner-name``), and a curated set of common
+  affixes. Each variant is its own ``"{variant} in:name"`` query, sorted
   by recency (``sort=updated``) because the permutation target is a *fresh*
   impostor that best-match would bury. Results are kept only on an exact match to
   the variant. ``discovered_via`` is tagged per generator.

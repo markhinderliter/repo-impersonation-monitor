@@ -44,7 +44,10 @@ cases:
   - canonical_repo: bigdatasciencegroup/bytedance-deer-flow
     expected_label: candidate_to_classify
     ground_truth_evidence: >-
-      Look-alike of bytedance/deer-flow: copied description, with the org name
-      'bytedance' folded into the repo name under a different owner. Status
-      UNVERIFIED - listed as a candidate to classify, NOT a confirmed malicious
-      case.
+      VERIFIED a FORK of bytedance/deer-flow (live check 2026-06-25: parent =
+      bytedance/deer-flow, fork = true, created 2026-03-23). Its org-fold-style
+      name is incidental: as a fork it is excluded from GitHub repo search by
+      default, so neither exact-name nor permutation discovery can surface it.
+      This is the weaponized-fork accepted gap (THREAT_MODEL §6), NOT the
+      permutation / exact-name gap. Malicious status remains UNVERIFIED - listed
+      as a candidate to classify, NOT a confirmed malicious case.
