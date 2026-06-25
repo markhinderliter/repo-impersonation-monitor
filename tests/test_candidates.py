@@ -200,8 +200,10 @@ def test_max_pages_bounded_by_max_candidates(max_c, expected_pages):
 
 # --- permutation: variant generation (pure) ------------------------------
 
-def test_name_variants_includes_confirmed_org_fold():
-    # The confirmed real case: bytedance/deer-flow -> bytedance-deer-flow.
+def test_name_variants_includes_org_fold():
+    # Org-fold generation: owner 'bytedance' + name 'deer-flow' -> 'bytedance-deer-flow'.
+    # (Synthetic check of the generator; the real repo of that name is a fork, so it
+    # is excluded from search by default — a separate gap, see THREAT_MODEL §6.)
     variants = dict(name_variants("bytedance", "deer-flow"))
     assert variants["bytedance-deer-flow"] == "permutation:org-fold"
 

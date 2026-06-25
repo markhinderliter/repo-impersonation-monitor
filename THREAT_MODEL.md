@@ -162,9 +162,13 @@ settings).
     payload, no extra request) and still matters on the bare-org path. Kept, not
     removed.
 - **Permutation (near-miss name) coverage is bounded by enumerated classes.**
-  Permutation discovery closes the named exact-name gap — the confirmed
-  `bytedance/deer-flow` → `bytedance-deer-flow` org-fold is now reached by a
-  targeted, recency-sorted variant query — but its reach is finite:
+  Permutation discovery surfaces real near-miss repos that exact-name matching
+  alone would miss — a live run as `bytedance/deer-flow`'s maintainer found 24
+  cold (the `deerflow` / `DeerFlow` separator class and the `deer-flow-js` affix
+  class) — but its reach is finite. (Note: a near-miss name that belongs to a
+  *fork* is still invisible, because forks are pre-excluded from search by
+  default — see the fork bullet above; that is a separate, documented gap, not a
+  permutation shortfall.) The bounds:
   - *Unicode-homoglyph variants are N/A, not a gap.* GitHub repo names and owner
     logins are ASCII (owner logins "can only contain alphanumeric characters and
     dashes"), so a Cyrillic-`а`-for-Latin-`a` clone cannot exist as an identifier.
