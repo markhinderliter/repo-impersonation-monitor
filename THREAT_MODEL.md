@@ -143,6 +143,31 @@ settings).
   risk inherent in parsing hostile binaries.
 - **Scorecard is hygiene, not proof:** a high score reflects good practice; it does
   not guarantee the absence of vulnerabilities.
+- **Forks are excluded from discovery by GitHub's default, not by us.** `GET
+  /search/repositories` does not return forks unless a query adds `fork:true` /
+  `fork:only` ("By default, forks are not shown in search results" —
+  [GitHub docs](https://docs.github.com/en/search-github/searching-on-github/searching-in-forks)).
+  A live discovery run confirmed this on our exact endpoint: 0 forks across 124
+  surfaced repos, including a project with ~17.2k forks. Two consequences we accept
+  for MVP:
+  - *Weaponized fork (accepted gap):* an attacker who forks, strips source, and
+    ships a malicious release is **already invisible** to our exact-name search,
+    because forks are pre-excluded server-side. This gap is not introduced by any
+    query choice of ours — it is GitHub's default. Rare in practice (the "forked
+    from" lineage is itself a deterrent and an attribution trail); not built for in
+    v1. A future path could opt into `fork:true` *specifically* to score forks.
+  - *Signal note:* because the primary search is fork-free, `not_a_fork` fires on
+    nearly every primary candidate (near-constant +0.15) — it stops discriminating
+    on that path, though it stays correct and free (`is_fork` is in the search
+    payload, no extra request) and still matters on the bare-org path. Kept, not
+    removed.
+- **The cap still truncates the non-fork population.** The per-run candidate cap
+  (default 30) bounds an already fork-free result set, so a non-fork impostor past
+  the cap on a popular name is unscored (4 of 5 seeds hit the cap in a live run).
+  Adding `fork:false` would not change this — the forks were never in the set.
+  Exact-name matching also misses typosquats that do not share the name (e.g.
+  `bytedance-deer-flow` vs `deer-flow`); closing that is the planned
+  permutation-search feature, tracked separately — not part of this note.
 
 ---
 
