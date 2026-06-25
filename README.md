@@ -92,7 +92,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: <owner>/repo-impersonation-monitor@v1
+      - uses: markhinderliter/repo-impersonation-monitor@v1
         with:
           project-name: MyProject
           # project-repo defaults to this repository

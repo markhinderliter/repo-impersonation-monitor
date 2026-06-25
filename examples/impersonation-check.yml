@@ -3,8 +3,9 @@
 # Copy this file into your repository at:
 #     .github/workflows/impersonation-check.yml
 #
-# Then replace <owner> with the org/user that hosts repo-impersonation-monitor
-# and set `project-name` to your project. The default GITHUB_TOKEN is enough;
+# Set `project-name` to your project. The `uses:` line below points at
+# markhinderliter's published action; change it only if you've forked your own
+# copy. The default GITHUB_TOKEN is enough;
 # the `permissions: issues: write` line is what lets the action open the report
 # issue without you configuring any secret.
 
