@@ -1,0 +1,28 @@
+# Jekyll configuration for the Repo Impersonation Monitor GitHub Pages site.
+#
+# Pages source is this /docs folder (Settings → Pages → Deploy from a branch →
+# main → /docs). The site is self-contained: a custom layout in
+# _layouts/default.html, no remote theme and no plugins, so the build does not
+# depend on the GitHub Pages plugin allowlist.
+
+title: Repo Impersonation Monitor
+tagline: Detect repos impersonating your project and get a paste-ready abuse report
+description: >-
+  A GitHub Action that watches for repositories impersonating your project
+  (the "repo confusion" attack) and hands you an evidence-ready, paste-ready
+  abuse report when it finds one. It proposes; a human files.
+
+# Project site lives at https://markhinderliter.github.io/repo-impersonation-monitor/
+url: https://markhinderliter.github.io
+baseurl: /repo-impersonation-monitor
+lang: en-US
+
+repo_url: https://github.com/markhinderliter/repo-impersonation-monitor
+marketplace_url: https://github.com/marketplace/actions/repo-impersonation-monitor
+threat_model_url: https://github.com/markhinderliter/repo-impersonation-monitor/blob/main/THREAT_MODEL.md
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
