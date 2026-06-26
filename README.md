@@ -165,18 +165,3 @@ PE test fixtures are generated, not checked in by hand — see
 ## License
 
 MIT
-
-<!--
-NOTES — delete before publishing:
-
-- Naming the clone: if you decide to name a specific org/account/repo as the
-  impersonator, stick to verifiable OBSERVATIONS ("the source tree was removed,"
-  "the binary's metadata named product X") rather than CONCLUSIONS ("they are
-  criminals"). Observations are defensible; labels invite trouble if you're ever
-  wrong about a specific named party. If in doubt, describe the pattern without
-  naming the third party — the story above works either way.
-
-- The "documented, growing pattern" line is accurate — repo-confusion campaigns
-  have been reported repeatedly through 2024-2026. You can link a reputable
-  write-up if you want a citation, but the README reads fine without one.
--->
