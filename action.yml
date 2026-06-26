@@ -1,7 +1,6 @@
 name: "Repo Impersonation Monitor"
 description: >-
-  Detect repositories impersonating your project (the "repo confusion" attack)
-  and open an issue with a paste-ready abuse report. Propose-only: a human files.
+  Detect repositories impersonating your project (repo confusion) and open an issue with a paste-ready abuse report. A human decides.
 author: "Mark Hinderliter"
 branding:
   icon: "shield"
