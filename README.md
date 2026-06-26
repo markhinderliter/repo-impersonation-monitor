@@ -72,7 +72,8 @@ Weighted toward durable, structural tells:
 
 ## Status
 
-Alpha. Not yet published or listed on the GitHub Marketplace.
+Alpha — published on the GitHub Marketplace. Pin `@v0.1.0` (a moving major alias
+will come with a stable line later).
 
 ## Usage
 
